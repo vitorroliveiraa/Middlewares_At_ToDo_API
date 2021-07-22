@@ -29,7 +29,7 @@ function checksCreateTodosUserAvailability(request, response, next) {
   const todoLength = user.todos.length;
 
   if (user.pro === false && todoLength >= 10) {
-    return response.status(403);
+    return response.status(403).json({ error: 'User is not a pro' });
   }
 
   return next();
@@ -37,22 +37,24 @@ function checksCreateTodosUserAvailability(request, response, next) {
 
 function checksTodoExists(request, response, next) {
   const { username } = request.headers;
-  const { idTodo } = request.params;
+  const { id } = request.params;
 
   const userExists = users.find((user) => user.username === username);
-  const todoValid = userExists.todos.find((todo) => todo.id === idTodo);
-  const isUUID = validate(idTodo);
 
   if (!userExists) {
-    return response.status(404);
+    return response.status(404).json({ error: 'User not found' });
   }
+
+  const isUUID = validate(id);
 
   if (!isUUID) {
-    return response.status(400);
+    return response.status(400).json({ error: 'id must be UUID' });
   }
 
+  const todoValid = userExists.todos.find((todo) => todo.id === id);
+
   if (!todoValid) {
-    return response.status(404);
+    return response.status(404).json({ error: 'Todo not found' });
   }
 
   request.user = userExists;
